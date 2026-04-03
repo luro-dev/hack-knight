@@ -5,15 +5,15 @@ export default function Navbar() {
   return (
     <nav className="navbar">                           {/* <nav> is a semantic HTML element for navigation */}
 
-      <Link to="/" className="flex items-center font-display text-text-primary text-xl hover:scale-105 transition-transform duration-300 origin-left">                                    {/* clicking the logo goes back to the homepage */}
+      <a href="/#hero" className="flex items-center font-display text-text-primary text-xl hover:scale-105 transition-transform duration-300 origin-left">                                    {/* clicking the logo scrolls to the hero section */}
         <img src={logoUrl} alt="HackKnight Logo" className="w-10 h-10" />
-        <span className="leading-none pt-0.5 font-bold">HackKnight</span>                        {/* placeholder for the logo/brand name */}
-      </Link>
+        <span className="leading-none pt-0.5 font-bold text-2xl">HackKnight</span>
+      </a>
 
-      <ul className="flex gap-6 items-center">         {/* unordered list to hold nav items */}
+      <ul className="flex gap-25 items-center">         {/* unordered list to hold nav items */}
 
         <li>                                           {/* list item for Schedule */}
-          <Link to="/schedule" className="navbar-link">Schedule</Link>         {/* Link navigates to the /schedule page */}
+          <a href="/#schedule" className="navbar-link">Schedule</a>         {/* href="/#schedule" scrolls to the element with id="schedule" on the homepage */}
         </li>
 
         <li>                                           {/* list item for Team */}
@@ -21,7 +21,7 @@ export default function Navbar() {
         </li>
 
         <li>                                           {/* list item for Sponsors */}
-          <Link to="/sponsors" className="navbar-link">Sponsors</Link>         {/* Link navigates to the /sponsors page */}
+          <a href="/#sponsors" className="navbar-link">Sponsors</a>         {/* href="/#sponsors" scrolls to the element with id="sponsors" on the homepage */}
         </li>
 
         <li>                                           {/* list item for FAQ */}

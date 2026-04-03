@@ -6,13 +6,13 @@ export default {
 
       // COLORS
       colors: {
-        void: "#0a0a0f",           // page background
+        void: "#1E1E24",           // page background
         surface: "#12121a",        // cards, panels, navbar
-        border: "#1e1e2e",         // subtle borders and dividers
-        ultraviolet: "#7c3aed",    // primary accent / CTA
+        border: "#71717A",         // subtle borders and dividers
+        ultraviolet: "#A855F7",    // primary accent / CTA
         violet: {
-          light: "#a78bfa",        // hover state for primary
-          dark: "#5b21b6",         // pressed/active state
+          light: "#C084FC",        // hover state for primary
+          dark: "#7C3AED",         // pressed/active state
         },
         text: {
           primary: "#f4f4f5",      // headings and important text
@@ -28,7 +28,7 @@ export default {
         mono: ["JetBrains Mono", "monospace"],       // countdown digits, code
       },
       fontSize: {
-        hero: ["4.5rem", { lineHeight: "1.1", letterSpacing: "-0.02em" }],
+        hero: ["7rem", { lineHeight: "1.1", letterSpacing: "-0.02em" }],
         section: ["2.25rem", { lineHeight: "1.2", letterSpacing: "-0.01em" }],
         card: ["1.125rem", { lineHeight: "1.6" }],
       },
