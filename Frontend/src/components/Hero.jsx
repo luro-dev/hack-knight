@@ -6,7 +6,7 @@ export default function Hero() {
     <section id="hero" className="section-wrapper flex flex-col items-center justify-center min-h-[80vh] text-center pt-32">
 
       <h1 className="pt-12 font-display font-bold text-hero text-text-primary mb-4"><span className="text-ultraviolet">HackKnight</span> 2026</h1>                      {/* main page heading — biggest text on the page */}
-      <p className="font-body text-text-primary text-2xl mb-8">October 17th - 19th, 2026</p>             {/* event date subtitle */}
+      <p className="font-body text-text-primary text-2xl mb-8">October 9th - 11th, 2026</p>             {/* event date subtitle */}
 
       <p className="section-subtitle max-w-3xl text-center mx-auto">
         HackKnight is a 48-hour hackathon where students come together to create

@@ -1,6 +1,7 @@
-// SchedulePreview — 3-column grid shown on the homepage.
-// Uses standardized CSS from src/styles/components.css
+// SchedulePreview — homepage teaser with a day-tab switcher.
+// Shows one day at a time; links to the full 3-column grid at /schedule.
 
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   scheduleEvents,
@@ -11,60 +12,45 @@ import {
 
 /**
  * SMART PACKING ALGORITHM
- * 
+ *
  * Objectives:
  * 1. Side-by-Side: Concurrent events (overlaps) are forced into distinct lanes (columns).
- * 2. Lane Re-use: Once an event ends, its lane is immediately available for the next one (to prevent "alternating").
- * 3. Buffer Protection: Short events "reserve" their lane for 45 mins. This prevents the very 
- *    next event from "crushing" into the same column, maintaining the visual split (e.g. at Noon).
+ * 2. Lane Re-use: Once an event ends, its lane is immediately available for the next one.
+ * 3. Buffer Protection: Short events "reserve" their lane for 45 mins to prevent visual crush.
  */
-function packEvents(events) {
-  if (!events.length) return [];
+function packEvents(events) { // Function to pack events into lanes
+  if (!events.length) return []; // Return empty array if no events
 
-  // Sort by start time, and then by original index to keep user-defined priority
-  const sorted = [...events].sort((a, b) =>
+  const sorted = [...events].sort((a, b) => // Sort events by start hour, then by index in scheduleEvents
     a.startHour - b.startHour ||
     scheduleEvents.indexOf(a) - scheduleEvents.indexOf(b)
   );
 
-  const packed = [];
-  const lanesUsedInClump = []; // Array of end-times for each lane
+  const packed = []; // Array to store packed events
+  const lanesUsedInClump = []; // Array to store the end time of each lane
 
-  sorted.forEach(evt => {
+  sorted.forEach(evt => { // Iterate over sorted events
     let laneIdx = -1;
     const start = evt.startHour;
-    // Conditional Buffer:
-    // Short events get a 0.75h buffer to force side-by-side split for Judging (12:30)
-    // Long events (>=30min) have no buffer so they maintain a clean vertical column.
     const isShort = (evt.endHour - evt.startHour) < 0.5;
     const bookingEnd = isShort ? Math.max(evt.endHour, start + 0.75) : evt.endHour;
 
-    for (let i = 0; i < lanesUsedInClump.length; i++) {
-      // Find the first lane that is free EXACTLY at the start time
-      if (start >= lanesUsedInClump[i]) {
-        laneIdx = i;
-        break;
-      }
+    for (let i = 0; i < lanesUsedInClump.length; i++) { // Find the first available lane
+      if (start >= lanesUsedInClump[i]) { laneIdx = i; break; }
     }
 
-    if (laneIdx === -1) {
+    if (laneIdx === -1) { // If no available lane is found, create a new one
       laneIdx = lanesUsedInClump.length;
       lanesUsedInClump.push(bookingEnd);
     } else {
       lanesUsedInClump[laneIdx] = bookingEnd;
     }
 
-    packed.push({
-      event: evt,
-      laneIdx,
-      totalLanes: 0
-    });
+    packed.push({ event: evt, laneIdx, totalLanes: 0 }); // Add the packed event to the array
   });
 
-  // Final pass: calculate dynamic width for each event based on its LOCAL concurrency
-  return packed.map(p => {
-    // Find all other events that overlap vertically with THIS event
-    const concurrent = packed.filter(other => {
+  return packed.map(p => { // Map over packed events to calculate total lanes and lane span
+    const concurrent = packed.filter(other => { // Filter for concurrent events
       const pStart = p.event.startHour;
       const pEnd = Math.max(p.event.endHour, pStart + 0.1);
       const oStart = other.event.startHour;
@@ -72,74 +58,77 @@ function packEvents(events) {
       return pStart < oEnd && oStart < pEnd;
     });
 
-    // In this group of concurrent events, what is the maximum lane index ever used?
-    const maxLaneIdxAcrossGroup = Math.max(...concurrent.map(c => c.laneIdx), 0);
-    const totalLanesForGroup = maxLaneIdxAcrossGroup + 1;
+    const maxLaneIdxAcrossGroup = Math.max(...concurrent.map(c => c.laneIdx), 0); // Find the maximum lane index across all concurrent events
+    const totalLanesForGroup = maxLaneIdxAcrossGroup + 1; // Calculate the total number of lanes needed for the group
 
-    // Final pass: Expansion Logic (Lane Spanning)
-    // Here we calculate how many consecutive lanes to the right are empty
-    // so an event can expand to fill unused horizontal space.
     let laneSpan = 1;
-    for (let l = p.laneIdx + 1; l < totalLanesForGroup; l++) {
-      const isLaneOccupied = concurrent.some(c => c.laneIdx === l);
-      if (!isLaneOccupied) {
-        laneSpan++; // Free lane found, grow into it
-      } else {
-        break; // Stop at the first occupied lane (the wall)
-      }
+    for (let l = p.laneIdx + 1; l < totalLanesForGroup; l++) { // Calculate the lane span for the current event
+      if (!concurrent.some(c => c.laneIdx === l)) laneSpan++;
+      else break;
     }
 
-    return { ...p, totalLanes: totalLanesForGroup, laneSpan };
+    return { ...p, totalLanes: totalLanesForGroup, laneSpan }; // Return the packed event with total lanes and lane span
   });
 }
 
-export default function SchedulePreview() {
-  const startHours = scheduleEvents.map(e => Math.floor(e.startHour));
-  const endHours = scheduleEvents.map(e => Math.ceil(e.endHour));
-  const minHour = Math.min(...startHours);
-  const maxHour = Math.max(...endHours);
-  const totalSlots = (maxHour - minHour) * 2 + 1;
-  const getRow = (h) => Math.round((h - minHour) * 2) + 2;
+function getRangeLabel(start, end) { // Format the time range for display
+  const fmt = h => formatFullTime(h).replace(':00 ', '').replace(' ', ''); // Format the time for display
+  return start === end ? fmt(start) : `${fmt(start)}–${fmt(end)}`; // Return the formatted time range
+}
 
-  // Formats time labels. 
-  // If start and end are the same, only the start time is shown 
-  // to avoid confusing "12PM–1PM" ranges for point-in-time milestones.
-  const getRangeLabel = (start, end) => {
-    const s = formatFullTime(start).replace(":00 ", "").replace(" ", "");
-    const e = formatFullTime(end).replace(":00 ", "").replace(" ", "");
-    if (start === end) return s;
-    return `${s}–${e}`;
-  };
+export default function SchedulePreview() { // Component to display the schedule preview
+  const [activeDay, setActiveDay] = useState(scheduleDays[0].key); // State to store the active day
+
+  const startHours = scheduleEvents.map(e => Math.floor(e.startHour)); // Get the start hours of all events
+  const endHours = scheduleEvents.map(e => Math.ceil(e.endHour)); // Get the end hours of all events
+  const minHour = Math.min(...startHours); // Find the minimum start hour
+  const maxHour = Math.max(...endHours); // Find the maximum end hour
+  const totalSlots = (maxHour - minHour) * 2 + 1; // Calculate the total number of slots
+  const getRow = h => Math.round((h - minHour) * 2) + 2; // Get the row for a given hour
+
+  const dayEvents = scheduleEvents.filter(e => e.day === activeDay); // Filter events for the active day
+  const packed = packEvents(dayEvents); // Pack events into lanes
 
   return (
-    <section className="section-wrapper py-24" id="schedule"> {/* section wrapper for this block */}
+    <section className="section-wrapper py-24" id="schedule">
       <div className="text-center mb-12">
-        <h2 className="section-title">Event Schedule</h2> {/* section title for this block */}
-        <p className="section-subtitle">October 9th – 11th, 2026</p> {/* section subtitle for this block */}
+        <h2 className="section-title">Event Schedule</h2>
       </div>
 
-      <div className="schedule-grid-wrapper max-w-7xl mx-auto my-10"> {/* schedule grid wrapper for this block */}
+      {/* Day tab switcher */}
+      <div className="flex justify-center gap-3 flex-wrap mb-8">
+        {scheduleDays.map(day => (
+          <button
+            key={day.key}
+            id={`preview-tab-${day.key}`}
+            onClick={() => setActiveDay(day.key)}
+            className={`schedule-tab${activeDay === day.key ? ' schedule-tab-active' : ''}`}
+          >
+            {day.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Single-day grid */}
+      <div className="schedule-grid-wrapper max-w-3xl mx-auto">
         <div
           className="schedule-grid"
           style={{
-            gridTemplateColumns: "5rem repeat(3, 1fr)",
-            gridTemplateRows: `3.5rem repeat(${totalSlots}, 2.8rem)`,
+            gridTemplateColumns: '5rem 1fr',
+            gridTemplateRows: `3.5rem repeat(${totalSlots}, 1.8rem)`,
           }}
         >
           {/* Header */}
           <div className="schedule-grid-corner" />
-          {scheduleDays.map((day, i) => (
-            <div
-              key={day.key}
-              className="schedule-day-header"
-              style={{ gridColumn: i + 2, gridRow: 1 }}
-            >
-              {day.label}
-            </div>
-          ))}
+          <div
+            className="schedule-day-header"
+            style={{ gridColumn: 2, gridRow: 1 }}
+          >
+            {scheduleDays.find(d => d.key === activeDay)?.label}
+          </div>
 
-          {/* Time Sidebar Labels */}
-          {Array.from({ length: maxHour - minHour + 1 }, (_, i) => minHour + i).map((hour) => (
+          {/* Time sidebar */}
+          {Array.from({ length: maxHour - minHour + 1 }, (_, i) => minHour + i).map(hour => (
             <div
               key={`label-${hour}`}
               className="schedule-time-label"
@@ -149,59 +138,58 @@ export default function SchedulePreview() {
             </div>
           ))}
 
-          {/* Background Grid Cells */}
+          {/* Background cells */}
           {Array.from({ length: totalSlots }, (_, slot) => (
-            <div key={`bg-row-${slot}`} style={{ display: 'contents' }}>
-              {scheduleDays.map((day, colIdx) => (
-                <div
-                  key={`bg-cell-${day.key}-${slot}`}
-                  className="schedule-cell"
-                  style={{
-                    gridRow: slot + 2,
-                    gridColumn: colIdx + 2,
-                    borderBottom: slot % 2 === 0 ? '1px dashed rgba(255,255,255,0.05)' : '1px solid rgba(255,255,255,0.05)'
-                  }}
-                />
-              ))}
-            </div>
+            <div
+              key={`bg-${slot}`}
+              className="schedule-cell"
+              style={{
+                gridRow: slot + 2,
+                gridColumn: 2,
+                borderBottom:
+                  slot % 2 === 0
+                    ? '1px dashed rgba(255,255,255,0.05)'
+                    : '1px solid rgba(255,255,255,0.05)',
+              }}
+            />
           ))}
 
-          {/* Event Cards */}
-          {scheduleDays.map((day, dIdx) => {
-            const dayEvents = scheduleEvents.filter(e => e.day === day.key);
-            const packed = packEvents(dayEvents);
-
-            return packed.map((item, pIdx) => {
-              const { event, laneIdx, totalLanes } = item;
-              const startRow = getRow(event.startHour);
-              const endRow = getRow(event.endHour);
-              const span = Math.max(endRow - startRow, 1);
-
-              return (
-                <div
-                  key={`${day.key}-${pIdx}`}
-                  className={`schedule-event color-${event.color ?? 'violet'}`}
-                  style={{
-                    gridRow: `${startRow} / span ${span}`,
-                    gridColumn: dIdx + 2,
-                    width: `calc(${(100 / totalLanes) * (item.laneSpan || 1)}% - 8px)`,
-                    marginLeft: `calc(${(laneIdx * (100 / totalLanes))}% + 4px)`,
-                    marginTop: '2px',
-                    marginBottom: '2px'
-                  }}
-                  title={event.label}
-                >
-                  <span className="schedule-event-title">
-                    {event.label}
-                  </span>
-                  <span className="schedule-event-time font-bold opacity-80 mt-0.5">
-                    {getRangeLabel(event.startHour, event.endHour)}
-                  </span>
-                </div>
-              );
-            });
+          {/* Events */}
+          {packed.map((item, pIdx) => {
+            const { event, laneIdx, totalLanes } = item;
+            const startRow = getRow(event.startHour);
+            const endRow = getRow(event.endHour);
+            const span = Math.max(endRow - startRow, 1);
+            return (
+              <div
+                key={pIdx}
+                className={`schedule-event color-${event.color ?? 'violet'}`}
+                style={{
+                  gridRow: `${startRow} / span ${span}`,
+                  gridColumn: 2,
+                  width: `calc(${(100 / totalLanes) * (item.laneSpan || 1)}% - 8px)`,
+                  marginLeft: `calc(${laneIdx * (100 / totalLanes)}% + 4px)`,
+                  marginTop: '2px',
+                  marginBottom: '2px',
+                }}
+                title={event.label}
+              >
+                <span className="schedule-event-title">{event.label}</span>
+                <span className="schedule-event-time font-bold opacity-80 mt-0.5">
+                  {getRangeLabel(event.startHour, event.endHour)}
+                </span>
+              </div>
+            );
           })}
 
+          {packed.length === 0 && (
+            <div
+              style={{ gridRow: '2 / span 4', gridColumn: 2 }}
+              className="flex items-center justify-center font-mono text-sm text-text-muted"
+            >
+              No events scheduled yet.
+            </div>
+          )}
         </div>
       </div>
 
