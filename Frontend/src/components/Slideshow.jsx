@@ -38,8 +38,8 @@ export default function Slideshow({ year, photos }) {
       className="w-full"
     >
       {/* Year label */}
-      <h3 className="font-mono text-ultraviolet uppercase tracking-widest text-sm mb-6 text-center">
-        HackKnight {year}
+      <h3 className="font-mono uppercase tracking-widest text-lg md:text-xl mb-6 text-center">
+        <span className="font-bold text-ultraviolet">HackKnight</span> <span className="font-bold text-white">{year}</span>
       </h3>
 
       {/* 3x2 photo grid */}
@@ -52,12 +52,14 @@ export default function Slideshow({ year, photos }) {
             key={i}
             src={photo.src}
             alt={photo.alt}
+            decoding="async"
+            loading="lazy"
             variants={photoVariants}
             transition={{
               duration: 0.4,
               ease: "easeOut",
             }}
-            className="w-full h-48 md:h-64 object-cover rounded-card border border-border bg-surface"
+            className="w-full h-48 md:h-64 object-cover rounded-card border border-border bg-surface will-change-transform"
           />
         ))}
       </div>

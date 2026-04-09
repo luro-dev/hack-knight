@@ -1,18 +1,18 @@
 // ─── 2024 Photos ─────────────────────────────────────────────────────────────
-import hk24_1 from "../assets/photos/2024/hackknight_1.jpg";
-import hk24_2 from "../assets/photos/2024/hackknight_2.jpg";
-import hk24_3 from "../assets/photos/2024/hackknight_3.jpg";
-import hk24_4 from "../assets/photos/2024/hackknight_4.jpg";
-import hk24_5 from "../assets/photos/2024/hackknight_5.jpg";
-import hk24_6 from "../assets/photos/2024/hackknight_6.jpg";
+import hk24_1 from "../assets/photos/2024/hackknight_1.webp";
+import hk24_2 from "../assets/photos/2024/hackknight_2.webp";
+import hk24_3 from "../assets/photos/2024/hackknight_3.webp";
+import hk24_4 from "../assets/photos/2024/hackknight_4.webp";
+import hk24_5 from "../assets/photos/2024/hackknight_5.webp";
+import hk24_6 from "../assets/photos/2024/hackknight_6.webp";
 
 // ─── 2025 Photos ─────────────────────────────────────────────────────────────
-import hk25_1 from "../assets/photos/2025/hackknight25_1.jpg";
-import hk25_2 from "../assets/photos/2025/hackknight25_2.jpg";
-import hk25_3 from "../assets/photos/2025/hackknight25_3.jpg";
-import hk25_4 from "../assets/photos/2025/hackknight25_4.jpg";
-import hk25_5 from "../assets/photos/2025/hackknight25_5.jpg";
-import hk25_6 from "../assets/photos/2025/hackknight25_6.jpg";
+import hk25_1 from "../assets/photos/2025/hackknight25_1.webp";
+import hk25_2 from "../assets/photos/2025/hackknight25_2.webp";
+import hk25_3 from "../assets/photos/2025/hackknight25_3.webp";
+import hk25_4 from "../assets/photos/2025/hackknight25_4.webp";
+import hk25_5 from "../assets/photos/2025/hackknight25_5.webp";
+import hk25_6 from "../assets/photos/2025/hackknight25_6.webp";
 
 // ─── Gallery Data ─────────────────────────────────────────────────────────────
 // To add a new year: import the photos above, then add a new object below.

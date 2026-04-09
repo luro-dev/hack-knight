@@ -13,6 +13,11 @@ export default function PhotoGallery() {
     setIndex((prev) => (prev + 1) % GALLERY_DATA.length);
   }
 
+  function handlePrev() {
+    setDirection(-1);
+    setIndex((prev) => (prev - 1 + GALLERY_DATA.length) % GALLERY_DATA.length);
+  }
+
   // Auto-advance every 5 seconds
   useEffect(() => {
     const timer = setInterval(handleNext, 10000);
@@ -24,12 +29,20 @@ export default function PhotoGallery() {
   return (
     <section id="photos" className="section-wrapper py-24">
       <h2 className="section-title text-center">Past Event Highlights</h2>
-      <p className="section-subtitle text-center">Browse photos from our past hackathons</p>
 
       <div className="relative mt-10">
 
+        {/* Left Arrow (offset by 22px to account for the year header so it centers strictly on the photos) */}
+        <button 
+          onClick={handlePrev}
+          className="absolute left-0 md:-left-12 top-[calc(50%+28px)] -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-surface border border-border text-text-secondary hover:border-ultraviolet hover:text-ultraviolet hover:shadow-glow transition-all z-10"
+          aria-label="Previous year"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+
         {/* Sliding viewport */}
-        <div className="relative w-full overflow-hidden">
+        <div className="relative w-full overflow-hidden px-12 md:px-0">
           <AnimatePresence mode="wait" custom={direction}>
             <Slideshow
               key={current.year}
@@ -40,27 +53,15 @@ export default function PhotoGallery() {
           </AnimatePresence>
         </div>
 
-      </div>
+        {/* Right Arrow */}
+        <button 
+          onClick={handleNext}
+          className="absolute right-0 md:-right-12 top-[calc(50%+28px)] -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-surface border border-border text-text-secondary hover:border-ultraviolet hover:text-ultraviolet hover:shadow-glow transition-all z-10"
+          aria-label="Next year"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        </button>
 
-      {/* Pill dot indicator */}
-      <div className="flex justify-center mt-6">
-        <div className="flex items-center gap-2.5 px-4 py-2 rounded-full border border-border bg-surface">
-          {GALLERY_DATA.map((gallery, i) => (
-            <button
-              key={gallery.year}
-              onClick={() => {
-                setDirection(i > index ? 1 : -1);
-                setIndex(i);
-              }}
-              aria-label={`View ${gallery.year} photos`}
-              className={`w-2 h-2 rounded-full bg-ultraviolet transition-all duration-300
-                ${i === index
-                  ? "opacity-100 scale-125"
-                  : "opacity-25 hover:opacity-50"
-                }`}
-            />
-          ))}
-        </div>
       </div>
 
     </section>
