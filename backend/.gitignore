@@ -18,6 +18,7 @@ backend/*.db-journal
 
 # Build output
 backend/dist/
+dist/
 
 # OS garbage
 .DS_Store

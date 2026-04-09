@@ -20,7 +20,8 @@ for (const envVar of requiredEnvVars) {
 app.use(morgan("dev"));
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin:
+      process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL : "*",
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   }),
