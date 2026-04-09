@@ -15,3 +15,11 @@ export interface CreateEventBody {
   end_time?: string;
   location?: string;
 }
+
+interface UpdateEventBody {
+  title?: string;
+  description?: string;
+  start_time?: string;
+  end_time?: string;
+  location?: string;
+}
